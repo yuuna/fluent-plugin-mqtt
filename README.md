@@ -1,6 +1,6 @@
 # Fluent::Plugin::Mqtt
 
-TODO: Write a gem description
+Fluent plugin for MQTT protocol
 
 ## Installation
 
@@ -18,11 +18,13 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+This client works as ONLY MQTT client.
+
+
 
 ## Contributing
 
-1. Fork it ( http://github.com/<my-github-username>/fluent-plugin-mqtt/fork )
+1. Fork it ( http://github.com/yuuna/fluent-plugin-mqtt/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
