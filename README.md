@@ -19,8 +19,17 @@ Or install it yourself as:
 ## Usage
 
 This client works as ONLY MQTT client.
+MQTT topic is set "#".
 
+```
 
+<source>
+  type mqtt
+  bind 127.0.0.1
+  port 1883
+</source>
+
+```
 
 ## Contributing
 
