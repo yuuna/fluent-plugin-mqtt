@@ -38,8 +38,7 @@ class MqttInputTest < Test::Unit::TestCase
 
   def test_client
     d = create_driver
-   time = Time.parse("2011-01-02 13:14:15 UTC").to_i
-
+    time = Time.parse("2011-01-02 13:14:15 UTC").to_i    
     d.expect_emit "tag1", time, {"t" => time, "v" => {"a"=>1}}
     d.expect_emit "tag2", time, {"t" => time, "v" => {"a"=>2}}
     d.run do
