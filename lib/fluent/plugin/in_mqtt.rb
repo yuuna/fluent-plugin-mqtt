@@ -22,7 +22,7 @@ module Fluent
     end
 
     def start
-      $log.debug "start mqtt"
+      $log.debug "start mqtt #{@bind}"
       @connect = MQTT::Client.connect({remote_host: @bind, remote_port: @port})
       @connect.subscribe(@topic)
 
@@ -36,7 +36,14 @@ module Fluent
     end
 
     def emit topic, message , time = Fluent::Engine.now
-          Fluent::Engine.emit(topic, time , message )
+      if message.class == Array
+        message.each do |data|
+          $log.debug "#{topic}: #{data}"
+          Fluent::Engine.emit(topic , time , data)
+        end
+      else
+        Fluent::Engine.emit(topic , time , message)
+      end
     end
 
     def json_parse message
