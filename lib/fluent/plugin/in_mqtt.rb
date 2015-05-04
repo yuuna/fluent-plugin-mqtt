@@ -29,6 +29,11 @@ module Fluent
       @parser.configure(conf)
     end
 
+    # Return [time (if not available return now), message]
+    def parse(message)
+      return @parser.parse(message)[1], @parser.parse(message)[0] || Fluent::Engine.now
+    end
+
     def start
       $log.debug "start mqtt #{@bind}"
       @connect = MQTT::Client.connect({remote_host: @bind, remote_port: @port})
@@ -38,7 +43,12 @@ module Fluent
         @connect.get do |topic,message|
           topic.gsub!("/","\.")
           $log.debug "#{topic}: #{message}"
-          emit topic, @parser.parse(message)[1]
+          begin
+            parsed_message = self.parse(message)
+          rescue Exception => e
+            $log.error e
+          end
+          emit topic, parsed_message[0], parsed_message[1]
         end
       end
     end
