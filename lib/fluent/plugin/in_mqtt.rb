@@ -53,7 +53,7 @@ module Fluent
       end
     end
 
-    def emit topic, message , time = Fluent::Engine.now
+    def emit topic, message, time = Fluent::Engine.now
       if message.class == Array
         message.each do |data|
           $log.debug "#{topic}: #{data}"
