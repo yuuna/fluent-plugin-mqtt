@@ -11,6 +11,8 @@ module Fluent
     config_param :port, :integer, :default => 1883
     config_param :bind, :string, :default => '127.0.0.1'
     config_param :topic, :string, :default => '#'
+    config_param :username, :string, :default => nil
+    config_param :password, :string, :default => nil
 
     require 'mqtt'
 
@@ -23,7 +25,10 @@ module Fluent
 
     def start
       $log.debug "start mqtt #{@bind}"
-      @connect = MQTT::Client.connect({remote_host: @bind, remote_port: @port})
+      @connect = MQTT::Client.connect({remote_host: @bind,
+                                       remote_port: @port,
+                                       username: @username,
+                                       password: @password})
       @connect.subscribe(@topic)
 
       @thread = Thread.new do
