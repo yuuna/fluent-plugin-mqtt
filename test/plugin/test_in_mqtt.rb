@@ -20,7 +20,7 @@ class MqttInputTest < Test::Unit::TestCase
   end
 
 
- CONFIG = %[
+  CONFIG = %[
   ]
 
   def create_driver(conf = CONFIG) 
@@ -38,7 +38,7 @@ class MqttInputTest < Test::Unit::TestCase
 
 
   def sub_client
-    connect = MQTT::Client.connect
+    connect = MQTT::Client.connect(host: '127.0.0.1', port: 1883)
     connect.subscribe('#')
     return connect
   end
