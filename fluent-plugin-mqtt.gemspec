@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = "fluent-plugin-mqtt"
-  spec.version       = "0.0.3"
+  spec.version       = "0.0.4"
   spec.authors       = ["Yuuna Kurita"]
   spec.email         = ["yuuna.m@gmail.com"]
   spec.summary       = %q{fluentd input plugin for mqtt server}
@@ -21,8 +21,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake"
   spec.add_development_dependency "mqtt"
   spec.add_development_dependency "fluentd"
-  spec.add_runtime_dependency "mqtt"
-  spec.add_runtime_dependency "fluentd"
-  spec.add_runtime_dependency "yajl-ruby"
 
 end
