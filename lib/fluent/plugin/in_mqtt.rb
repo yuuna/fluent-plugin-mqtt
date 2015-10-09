@@ -42,8 +42,8 @@ module Fluent
 
     def start
       $log.debug "start mqtt #{@bind}"
-      opts = {remote_host: @bind,
-              remote_port: @port,
+      opts = {host: @bind,
+              port: @port,
               username: @username,
               password: @password}
       opts[:ssl] = @ssl if @ssl
