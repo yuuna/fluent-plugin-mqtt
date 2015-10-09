@@ -11,6 +11,7 @@ module Fluent
     config_param :port, :integer, :default => 1883
     config_param :bind, :string, :default => '127.0.0.1'
     config_param :topic, :string, :default => '#'
+    config_param :format, :string, :default => 'none'
 
     require 'mqtt'
 
@@ -19,6 +20,18 @@ module Fluent
       @bind ||= conf['bind']
       @topic ||= conf['topic']
       @port ||= conf['port']
+
+      configure_parser(conf)
+    end
+
+    def configure_parser(conf)
+      @parser = Plugin.new_parser(@format)
+      @parser.configure(conf)
+    end
+
+    # Return [time (if not available return now), message]
+    def parse(message)
+      return @parser.parse(message)[1], @parser.parse(message)[0] || Fluent::Engine.now
     end
 
     def start
@@ -30,12 +43,17 @@ module Fluent
         @connect.get do |topic,message|
           topic.gsub!("/","\.")
           $log.debug "#{topic}: #{message}"
-          emit topic, json_parse(message)
+          begin
+            parsed_message = self.parse(message)
+          rescue Exception => e
+            $log.error e
+          end
+          emit topic, parsed_message[0], parsed_message[1]
         end
       end
     end
 
-    def emit topic, message , time = Fluent::Engine.now
+    def emit topic, message, time = Fluent::Engine.now
       if message.class == Array
         message.each do |data|
           $log.debug "#{topic}: #{data}"
@@ -46,15 +64,6 @@ module Fluent
       end
     end
 
-    def json_parse message
-      begin
-        y = Yajl::Parser.new
-        y.parse(message)
-      rescue
-        $log.error "JSON parse error", :error => $!.to_s, :error_class => $!.class.to_s
-        $log.warn_backtrace $!.backtrace         
-      end
-    end
     def shutdown
       @thread.kill
       @connect.disconnect
