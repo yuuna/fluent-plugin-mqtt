@@ -57,7 +57,19 @@ The options are basically the same as Input Plugin. The difference is related to
 - topic_rewrite_pattern: Regexp pattern to extract replacement words from received topic or tag name
 - topic_rewrite_replacement: Topic name used for the publish using extracted pattern
 
-The topic name or tag name, e.g. "topic", received from an event can not be published without modification because if MQTT input plugin is used as a source, the same message will become an input repeatedly. In order to support data conversion with this plugin using parser and formatter, flexible topic rewriting is supported.
+The topic name or tag name, e.g. "topic", received from an event can not be published without modification because if MQTT input plugin is used as a source, the same message will become an input repeatedly. In order to support data conversion with this plugin using parser and formatter, flexible topic rewriting is supported. Since topic is rewritten using #gsub method, 'pattern' and 'replacement' are the same as #gsub arguments.
+
+```
+
+<match topic.**>
+  type mqtt
+  bind 127.0.0.1
+  port 1883
+  topic_rewrite_pattern '^([\w\/]+)$'
+  topic_rewrite_replacement '\1/rewritten'
+</match>
+
+```
 
 ## Contributing
 
