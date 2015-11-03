@@ -39,15 +39,6 @@ module Fluent
       $log.debug "start mqtt host: #{@bind}, port: #{@port}, username: #{@username}, password: #{@password}"
       @connect = MQTT::Client.connect(host: @bind, port: @port,
                                       username: @username, password: @password)
-#      @connect.subscribe(@topic)
-#
-#      @thread = Thread.new do
-#        @connect.get do |topic,message|
-#          topic.gsub!("/","\.")
-#          $log.debug "#{topic}: #{message}"
-#          emit topic, json_parse(message)
-#        end
-#      end
     end
 
     # This method is called when shutting down.

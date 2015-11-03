@@ -18,8 +18,9 @@ Or install it yourself as:
 
 ## Usage
 
-This client works as ONLY MQTT client.
-MQTT topic is set "#".
+fluent-plugin-mqtt provides Input and Output Plugins for MQTT.
+
+Input Plugin can be used via source directive in the configuration.
 
 ```
 
@@ -30,6 +31,33 @@ MQTT topic is set "#".
 </source>
 
 ```
+
+The default MQTT topic is "#". Configurable options are the following:
+
+- bind: IP address of MQTT broker
+- port: Port number of MQTT broker
+- topic: Topic name to be subscribed
+- username: User name for authentication
+- password: Password for authentication
+
+Output Plugin can be used via match directive.
+
+```
+
+<match topic.**>
+  type mqtt
+  bind 127.0.0.1
+  port 1883
+</match>
+
+```
+
+The options are basically the same as Input Plugin. The difference is related to the topic.
+
+- topic_rewrite_pattern: Regexp pattern to extract replacement words from received topic or tag name
+- topic_rewrite_replacement: Topic name used for the publish using extracted pattern
+
+The topic name or tag name, e.g. "topic", received from an event can not be published without modification because if MQTT input plugin is used as a source, the same message will become an input repeatedly. In order to support data conversion with this plugin using parser and formatter, flexible topic rewriting is supported.
 
 ## Contributing
 
