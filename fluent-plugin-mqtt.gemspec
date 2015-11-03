@@ -4,9 +4,9 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = "fluent-plugin-mqtt"
-  spec.version       = "0.0.4"
-  spec.authors       = ["Yuuna Kurita"]
-  spec.email         = ["yuuna.m@gmail.com"]
+  spec.version       = "0.1.0"
+  spec.authors       = ["Yuuna Kurita", "Toyokazu Akiyama"]
+  spec.email         = ["yuuna.m@gmail.com", "toyokazu@gmail.com"]
   spec.summary       = %q{fluentd input plugin for mqtt server}
   spec.description   = %q{fluentd input plugin for mqtt server}
   spec.homepage      = "http://github.com/yuuna/fluent-plugin-mqtt"

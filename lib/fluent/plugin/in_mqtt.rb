@@ -2,11 +2,11 @@ module Fluent
   class MqttInput < Input
     Plugin.register_input('mqtt', self)
 
-    include Fluent::SetTagKeyMixin
-    config_set_default :include_tag_key, false
-    
-    include Fluent::SetTimeKeyMixin
-    config_set_default :include_time_key, true
+    #include Fluent::SetTagKeyMixin
+    #config_set_default :include_tag_key, false
+    #
+    #include Fluent::SetTimeKeyMixin
+    #config_set_default :include_time_key, true
     
     config_param :port, :integer, :default => 1883
     config_param :bind, :string, :default => '127.0.0.1'
@@ -44,10 +44,10 @@ module Fluent
       if message.class == Array
         message.each do |data|
           $log.debug "#{topic}: #{data}"
-          Fluent::Engine.emit(topic , time , data)
+          router.emit(topic , time , data)
         end
       else
-        Fluent::Engine.emit(topic , time , message)
+        router.emit(topic , time , message)
       end
     end
 
@@ -60,6 +60,7 @@ module Fluent
         $log.warn_backtrace $!.backtrace         
       end
     end
+
     def shutdown
       @thread.kill
       @connect.disconnect
