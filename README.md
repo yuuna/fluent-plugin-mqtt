@@ -39,6 +39,7 @@ The default MQTT topic is "#". Configurable options are the following:
 - topic: Topic name to be subscribed
 - username: User name for authentication
 - password: Password for authentication
+- format: Input parser can be chosen, e.g. json, xml
 
 Output Plugin can be used via match directive.
 

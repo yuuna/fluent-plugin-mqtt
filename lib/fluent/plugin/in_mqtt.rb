@@ -23,6 +23,12 @@ module Fluent
       @port ||= conf['port']
       @username ||= conf['username']
       @password ||= conf['password']
+      configure_parser(conf)
+    end
+
+    def configure_parser(conf)
+      @parser = Plugin.new_parser(conf['format'])
+      @parser.configure(conf)
     end
 
     def start
@@ -33,31 +39,22 @@ module Fluent
 
       @thread = Thread.new do
         @connect.get do |topic,message|
-          topic.gsub!("/","\.")
+          #topic.gsub!("/","\.")
           $log.debug "#{topic}: #{message}"
-          emit topic, json_parse(message)
+          emit topic, message
         end
       end
     end
 
-    def emit topic, message , time = Fluent::Engine.now
-      if message.class == Array
-        message.each do |data|
-          $log.debug "#{topic}: #{data}"
-          router.emit(topic , time , data)
-        end
-      else
-        router.emit(topic , time , message)
-      end
-    end
-
-    def json_parse message
+    def emit topic, message, time = Fluent::Engine.now
       begin
-        y = Yajl::Parser.new
-        y.parse(message)
-      rescue
-        $log.error "JSON parse error", :error => $!.to_s, :error_class => $!.class.to_s
-        $log.warn_backtrace $!.backtrace         
+        @parser.parse(message) {|time, record|
+          $log.debug "#{time}, #{record}"
+          router.emit(topic, time, record)
+        }
+      rescue => e
+        $log.warn :error => e.to_s
+        $log.debug_backtrace(e.backtrace)
       end
     end
 
