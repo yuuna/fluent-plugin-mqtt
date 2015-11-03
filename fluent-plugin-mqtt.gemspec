@@ -7,8 +7,8 @@ Gem::Specification.new do |spec|
   spec.version       = "0.1.0"
   spec.authors       = ["Yuuna Kurita", "Toyokazu Akiyama"]
   spec.email         = ["yuuna.m@gmail.com", "toyokazu@gmail.com"]
-  spec.summary       = %q{fluentd input plugin for mqtt server}
-  spec.description   = %q{fluentd input plugin for mqtt server}
+  spec.summary       = %q{fluentd input/output plugin for mqtt server}
+  spec.description   = %q{fluentd input/output plugin for mqtt server}
   spec.homepage      = "http://github.com/yuuna/fluent-plugin-mqtt"
   spec.license       = "MIT"
 
