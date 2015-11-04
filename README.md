@@ -53,12 +53,14 @@ Output Plugin can be used via match directive.
 
 ```
 
-The options are basically the same as Input Plugin. The difference is related to the topic.
+The options are basically the same as Input Plugin. The difference is the following.
 
+- time_key: An attribute name used for timestamp field. Default is 'timestamp'.
+- time_format: Output format of timestamp field. Default is ISO8601. You can specify your own format by using TimeParser.
 - topic_rewrite_pattern: Regexp pattern to extract replacement words from received topic or tag name
 - topic_rewrite_replacement: Topic name used for the publish using extracted pattern
 
-The topic name or tag name, e.g. "topic", received from an event can not be published without modification because if MQTT input plugin is used as a source, the same message will become an input repeatedly. In order to support data conversion with this plugin using parser and formatter, flexible topic rewriting is supported. Since topic is rewritten using #gsub method, 'pattern' and 'replacement' are the same as #gsub arguments.
+The topic name or tag name, e.g. "topic", received from an event can not be published without modification because if MQTT input plugin is used as a source, the same message will become an input repeatedly. In order to support data conversion with this plugin using parser plugin, simple topic rewriting is supported. Since topic is rewritten using #gsub method, 'pattern' and 'replacement' are the same as #gsub arguments.
 
 ```
 

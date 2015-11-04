@@ -39,7 +39,7 @@ module Fluent
 
       @thread = Thread.new do
         @connect.get do |topic,message|
-          #topic.gsub!("/","\.")
+          topic.gsub!("/","\.")
           $log.debug "#{topic}: #{message}"
           emit topic, message
         end

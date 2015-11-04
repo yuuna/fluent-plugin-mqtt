@@ -11,9 +11,10 @@ module Fluent
     #config_param :topic, :string, :default => '#'
     config_param :username, :string, :default => nil
     config_param :password, :string, :default => nil
+    config_param :time_key, :string, :default => 'timestamp'
+    config_param :time_format, :string, :default => nil
     config_param :topic_rewrite_pattern, :string, :default => '^([\w\/]+)$'
     config_param :topic_rewrite_replacement, :string, :default => '\1/rewritten'
-
 
     # This method is called before starting.
     # 'conf' is a Hash that includes configuration parameters.
@@ -27,6 +28,8 @@ module Fluent
       @port ||= conf['port']
       @username ||= conf['username']
       @password ||= conf['password']
+      @time_key ||= conf['time_key']
+      @time_format ||= conf['time_format']
       @topic_rewrite_pattern ||= conf['topic_rewrite_pattern']
       @topic_rewrite_replacement ||= conf['topic_rewrite_replacement']
     end
@@ -68,8 +71,15 @@ module Fluent
       data = chunk.read
       #print data
       json = json_parse(data)
+      time = nil
+      if @time_format.nil?
+        time = Time.at(json[1]).iso8601
+      else
+        time_parser = TimeParser.new(@time_format)
+        time = time_parser.parse(json[1])
+      end
       #print json[0]
-      @connect.publish(json[0].gsub(Regexp.new(@topic_rewrite_pattern), @topic_rewrite_replacement), json[2].to_json)
+      @connect.publish(json[0].gsub("\.", "/").gsub(Regexp.new(@topic_rewrite_pattern), @topic_rewrite_replacement), (json[2].merge(@time_key => time)).to_json)
     end
 
     ## Optionally, you can use chunk.msgpack_each to deserialize objects.
