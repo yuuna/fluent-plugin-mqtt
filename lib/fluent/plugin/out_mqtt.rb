@@ -48,12 +48,12 @@ module Fluent
 
       $log.debug "start mqtt #{@bind}"
       opts = {host: @bind,
-              port: @port,
-              username: @username,
-              password: @password}
+              port: @port}
+      opts[:username] =  @username if @username
+      opts[:password] = @password if @password
       opts[:ssl] = @ssl if @ssl
       opts[:ca_file] = @ca if @ca
-      opts[:crt_file] = @crt if @crt
+      opts[:cert_file] = @crt if @crt
       opts[:key_file] = @key if @key
       @connect = MQTT::Client.connect(opts)
       super
@@ -77,7 +77,7 @@ module Fluent
 
     private
     # Following limits are heuristic. BSON is sometimes bigger than MessagePack and JSON.
-    LIMIT_MQTT = 2 * 1024   # 2048kb
+    LIMIT_MQTT = 2 * 1024  # 2048kb
 
     def available_buffer_chunk_limit
       if @buffer.buffer_chunk_limit > LIMIT_MQTT

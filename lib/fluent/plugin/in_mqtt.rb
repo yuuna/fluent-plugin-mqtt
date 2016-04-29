@@ -43,12 +43,12 @@ module Fluent
     def start
       $log.debug "start mqtt #{@bind}"
       opts = {host: @bind,
-              port: @port,
-              username: @username,
-              password: @password}
+              port: @port}
+      opts[:username] =  @username if @username
+      opts[:password] = @password if @password
       opts[:ssl] = @ssl if @ssl
       opts[:ca_file] = @ca if @ca
-      opts[:crt_file] = @crt if @crt
+      opts[:cert_file] = @crt if @crt
       opts[:key_file] = @key if @key
       @connect = MQTT::Client.connect(opts)
       @connect.subscribe(@topic)
