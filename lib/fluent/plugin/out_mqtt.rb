@@ -19,6 +19,7 @@ module Fluent
     config_param :ca, :string, :default => nil
     config_param :key, :string, :default => nil
     config_param :cert, :string, :default => nil
+    config_param :retain, :string, :default => true
 
     require 'mqtt'
 
@@ -38,8 +39,10 @@ module Fluent
     def configure(conf)
       super
       @bind ||= conf['bind']
-      @topic ||= conf['topic'] 
-      @port ||= conf['port']      
+      @topic ||= conf['topic']
+      @port ||= conf['port']
+      @formatter = Plugin.new_formatter(@format)
+      @formatter.configure(conf)
     end
 
     def start
@@ -69,9 +72,9 @@ module Fluent
     end
 
     def write(chunk)
-      $log.debug "write"
       chunk.msgpack_each { |tag, time, record|
-        @connect.publish(tag, record , retain=true)
+        log.debug "write #{@topic} #{@formatter.format(tag,time,record)}"
+        @connect.publish(@topic, @formatter.format(tag,time,record), retain=@retain)
       }
     end
 
