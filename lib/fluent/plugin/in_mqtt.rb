@@ -17,6 +17,7 @@ module Fluent::Plugin
     config_param :bind, :string, :default => '127.0.0.1'
     config_param :topic, :string, :default => '#'
     config_param :format, :string, :default => DEFAULT_PARSER_TYPE
+    config_param :client_id, :string, :default => nil
     config_param :username, :string, :default => nil
     config_param :password, :string, :default => nil
     config_param :ssl, :bool, :default => nil
@@ -50,6 +51,7 @@ module Fluent::Plugin
       log.debug "start mqtt #{@bind}"
       opts = {host: @bind,
               port: @port}
+      opts[:client_id] = @client_id if @client_id
       opts[:username] =  @username if @username
       opts[:password] = @password if @password
       opts[:ssl] = @ssl if @ssl
