@@ -1,6 +1,7 @@
 require 'helper'
+require 'fluent/test/driver/input'
 
-class Fluent::MqttInput
+class Fluent::Plugin::MqttInput
   #def emit topic, message , time = Fluent::Engine.now
     #if message.class == Array
       #message.each do |data|
@@ -14,6 +15,8 @@ class Fluent::MqttInput
 
 end
 
+include Fluent::Test::Helpers
+
 class MqttInputTest < Test::Unit::TestCase
   def setup
     Fluent::Test.setup
@@ -24,7 +27,7 @@ class MqttInputTest < Test::Unit::TestCase
              format json ]
 
   def create_driver(conf = CONFIG)
-    Fluent::Test::InputTestDriver.new(Fluent::MqttInput).configure(conf)
+    Fluent::Test::Driver::Input.new(Fluent::Plugin::MqttInput).configure(conf)
   end
 
   def test_configure_1
@@ -72,21 +75,20 @@ class MqttInputTest < Test::Unit::TestCase
          port 1883
          format json ]
     )
-    time = Time.parse("2011-01-02 13:14:15 UTC").to_i
+    time = event_time("2011-01-02 13:14:15 UTC")
     data = [
       {tag: "tag1", message: {"t" => time, "v" => {"a"=>1}}},
       {tag: "tag2", message: {"t" => time, "v" => {"a"=>1}}},
       {tag: "tag3", message: {"t" => time, "v" => {"a"=>32}}},
     ]
 
-    d.run do
+    d.run(expect_emits: 3, timeout: 5) do
       data.each do |record|
         send_data record[:tag], record[:message], d.instance.format
-        sleep 0.1
       end
     end
 
-    emits = d.emits
+    emits = d.events
     assert_equal('tag1', emits[0][0])
     assert_equal({"t" => time, "v" => {"a"=>1}}, emits[0][2])
 
@@ -104,7 +106,7 @@ class MqttInputTest < Test::Unit::TestCase
          format json
          time_key t ]
     )
-    time = Time.parse("2011-01-02 13:14:15 UTC").to_i
+    time = event_time("2011-01-02 13:14:15 UTC")
     data = [
       {tag: "tag1", message: {"t" => time, "v" => {"a"=>1}}},
       {tag: "tag2", message: {"t" => time, "v" => {"a"=>1}}},
@@ -112,13 +114,13 @@ class MqttInputTest < Test::Unit::TestCase
       {tag: "tag3", message: {"t" => time, "v" => {"a"=>32}}},
     ]
 
-    d.run do
+    d.run(expect_emits: 4, timeout: 5) do
       data.each do |record|
         send_data record[:tag], record[:message], d.instance.format
       end
     end
 
-    emits = d.emits
+    emits = d.events
     assert_equal('tag1', emits[0][0])
     assert_equal(time, emits[0][1])
     assert_equal({"v" => {"a"=>1}}, emits[0][2])
@@ -137,13 +139,13 @@ class MqttInputTest < Test::Unit::TestCase
       {tag: "tag3", message: ''},
     ]
 
-    d.run do
+    d.run(expect_emits: 3, timeout: 5) do
       data.each do |record|
         send_data record[:tag], record[:message], d.instance.format
       end
     end
 
-    emits = d.emits
+    emits = d.events
     time = Fluent::Engine.now
     assert_equal('tag1', emits[0][0])
     assert_equal({'message' => 'hello world'}, emits[0][2])
@@ -161,20 +163,20 @@ class MqttInputTest < Test::Unit::TestCase
          keys time,message]
     )
 
-    time = Time.parse("2011-01-02 13:14:15 UTC").to_i
+    time = event_time("2011-01-02 13:14:15 UTC")
     data = [
       {tag: "tag1", message: "#{time},hello world" },
       {tag: "tag2", message: "#{time},hello to you to" },
       {tag: "tag3", message: "#{time}," },
     ]
 
-    d.run do
+    d.run(expect_emits: 3, timeout: 5) do
       data.each do |record|
         send_data record[:tag], record[:message], d.instance.format
       end
     end
 
-    emits = d.emits
+    emits = d.events
     #puts 'emits length', emits.length.to_s
     assert_equal('tag1', emits[0][0])
     assert_equal({'time' => time.to_s, 'message' => 'hello world'}, emits[0][2])
@@ -195,7 +197,7 @@ class MqttInputTest < Test::Unit::TestCase
          time_format %S]
     )
 
-    time = Time.parse("2011-01-02 13:14:15 UTC").to_i
+    time = event_time("2011-01-02 13:14:15 UTC")
     data = [
       {tag: "tag1", message: "#{time},abc" },
       {tag: "tag2", message: "#{time},def" },
@@ -203,13 +205,13 @@ class MqttInputTest < Test::Unit::TestCase
       {tag: "tag3", message: "#{time}," },
     ]
 
-    d.run do
+    d.run(expect_emits: 4, timeout: 5) do
       data.each do |record|
         send_data record[:tag], record[:message], d.instance.format
       end
     end
 
-    emits = d.emits
+    emits = d.events
     assert_equal('tag1', emits[0][0])
     assert_equal({'message' => 'abc'}, emits[0][2])
 
@@ -234,6 +236,5 @@ class MqttInputTest < Test::Unit::TestCase
       else
         sub_client.publish(tag, record)
     end
-    sleep 0.2
   end
 end
