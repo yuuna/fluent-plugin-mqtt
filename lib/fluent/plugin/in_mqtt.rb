@@ -1,3 +1,4 @@
+require 'mqtt'
 require 'fluent/plugin/input'
 require 'fluent/plugin/parser'
 
@@ -11,12 +12,6 @@ module Fluent::Plugin
     include Fluent::SetTimeKeyMixin
     config_set_default :include_time_key, true
 
-    # Define `router` method of v0.12 to support v0.10 or earlier
-    unless method_defined?(:router)
-      define_method("router") { Fluent::Engine }
-    end
-
-
     config_param :port, :integer, :default => 1883
     config_param :bind, :string, :default => '127.0.0.1'
     config_param :topic, :string, :default => '#'
@@ -27,8 +22,6 @@ module Fluent::Plugin
     config_param :ca, :string, :default => nil
     config_param :key, :string, :default => nil
     config_param :cert, :string, :default => nil
-
-    require 'mqtt'
 
     def configure(conf)
       super
@@ -53,7 +46,7 @@ module Fluent::Plugin
 
     def start
       super
-      $log.debug "start mqtt #{@bind}"
+      log.debug "start mqtt #{@bind}"
       opts = {host: @bind,
               port: @port}
       opts[:username] =  @username if @username
@@ -68,11 +61,11 @@ module Fluent::Plugin
       @thread = Thread.new do
         @connect.get do |topic,message|
           topic.gsub!("/","\.")
-          $log.debug "#{topic}: #{message}"
+          log.debug "#{topic}: #{message}"
           begin
             time, record = self.parse(message)
           rescue Exception => e
-            $log.error e
+            log.error e
           end
           emit topic, record, time
         end
@@ -83,7 +76,7 @@ module Fluent::Plugin
     def emit topic, message, time = Fluent::Engine.now
       if message.class == Array
         message.each do |data|
-          $log.debug "#{topic}: #{data}"
+          log.debug "#{topic}: #{data}"
           router.emit(topic , time , data)
         end
       else
