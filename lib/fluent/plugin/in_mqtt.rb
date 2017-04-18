@@ -25,10 +25,6 @@ module Fluent::Plugin
 
     def configure(conf)
       super
-      @bind ||= conf['bind']
-      @topic ||= conf['topic']
-      @port ||= conf['port']
-
       configure_parser(conf)
     end
 
