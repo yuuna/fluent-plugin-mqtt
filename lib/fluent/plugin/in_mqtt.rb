@@ -1,3 +1,5 @@
+require 'fluent/input'
+
 module Fluent
   class MqttInput < Input
     Plugin.register_input('mqtt', self)
