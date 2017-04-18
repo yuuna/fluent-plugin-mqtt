@@ -8,19 +8,25 @@ module Fluent::Plugin
 
     helpers :thread, :inject, :compat_parameters, :parser
 
+    DEFAULT_PARSER_TYPE = 'none'
+
     config_set_default :include_tag_key, false
     config_set_default :include_time_key, true
 
     config_param :port, :integer, :default => 1883
     config_param :bind, :string, :default => '127.0.0.1'
     config_param :topic, :string, :default => '#'
-    config_param :format, :string, :default => 'none'
+    config_param :format, :string, :default => DEFAULT_PARSER_TYPE
     config_param :username, :string, :default => nil
     config_param :password, :string, :default => nil
     config_param :ssl, :bool, :default => nil
     config_param :ca, :string, :default => nil
     config_param :key, :string, :default => nil
     config_param :cert, :string, :default => nil
+
+    config_section :parse do
+      config_set_default :@type, DEFAULT_PARSER_TYPE
+    end
 
     def configure(conf)
       compat_parameters_convert(conf, :inject, :parser)
