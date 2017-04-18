@@ -6,6 +6,8 @@ module Fluent::Plugin
   class MqttInput < Input
     Fluent::Plugin.register_input('mqtt', self)
 
+    helpers :thread
+
     include Fluent::SetTagKeyMixin
     config_set_default :include_tag_key, false
 
@@ -54,7 +56,7 @@ module Fluent::Plugin
       @connect = MQTT::Client.connect(opts)
       @connect.subscribe(@topic)
 
-      @thread = Thread.new do
+      thread_create(:in_mqtt_worker) do
         @connect.get do |topic,message|
           topic.gsub!("/","\.")
           log.debug "#{topic}: #{message}"
@@ -81,7 +83,6 @@ module Fluent::Plugin
     end
 
     def shutdown
-      @thread.kill
       @connect.disconnect
       super
     end
