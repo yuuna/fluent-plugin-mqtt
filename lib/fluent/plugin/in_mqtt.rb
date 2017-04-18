@@ -1,25 +1,22 @@
-require 'fluent/input'
+require 'mqtt'
+require 'fluent/plugin/input'
+require 'fluent/plugin/parser'
 
-module Fluent
+module Fluent::Plugin
   class MqttInput < Input
-    Plugin.register_input('mqtt', self)
+    Fluent::Plugin.register_input('mqtt', self)
 
-    include Fluent::SetTagKeyMixin
+    helpers :thread, :inject, :compat_parameters, :parser
+
+    DEFAULT_PARSER_TYPE = 'none'
+
     config_set_default :include_tag_key, false
-    
-    include Fluent::SetTimeKeyMixin
     config_set_default :include_time_key, true
 
-    # Define `router` method of v0.12 to support v0.10 or earlier
-    unless method_defined?(:router)
-      define_method("router") { Fluent::Engine }
-    end
-    
-    
     config_param :port, :integer, :default => 1883
     config_param :bind, :string, :default => '127.0.0.1'
     config_param :topic, :string, :default => '#'
-    config_param :format, :string, :default => 'none'
+    config_param :format, :string, :default => DEFAULT_PARSER_TYPE
     config_param :client_id, :string, :default => nil
     config_param :username, :string, :default => nil
     config_param :password, :string, :default => nil
@@ -28,29 +25,30 @@ module Fluent
     config_param :key, :string, :default => nil
     config_param :cert, :string, :default => nil
 
-    require 'mqtt'
+    config_section :parse do
+      config_set_default :@type, DEFAULT_PARSER_TYPE
+    end
 
     def configure(conf)
+      compat_parameters_convert(conf, :inject, :parser)
       super
-      @bind ||= conf['bind']
-      @topic ||= conf['topic']
-      @port ||= conf['port']
-
       configure_parser(conf)
     end
 
     def configure_parser(conf)
-      @parser = Plugin.new_parser(@format)
-      @parser.configure(conf)
+      @parser = parser_create(usage: 'in_mqtt_parser', type: @format, conf: conf)
     end
 
     # Return [time (if not available return now), message]
     def parse(message)
-      return @parser.parse(message)[1], @parser.parse(message)[0] || Fluent::Engine.now
+      @parser.parse(message) {|time, record|
+        return (time || Fluent::Engine.now), record
+      }
     end
 
     def start
-      $log.debug "start mqtt #{@bind}"
+      super
+      log.debug "start mqtt #{@bind}"
       opts = {host: @bind,
               port: @port}
       opts[:client_id] = @client_id if @client_id
@@ -63,25 +61,26 @@ module Fluent
       @connect = MQTT::Client.connect(opts)
       @connect.subscribe(@topic)
 
-      @thread = Thread.new do
+      thread_create(:in_mqtt_worker) do
         @connect.get do |topic,message|
           topic.gsub!("/","\.")
-          $log.debug "#{topic}: #{message}"
+          log.debug "#{topic}: #{message}"
           begin
-            parsed_message = self.parse(message)
+            time, record = self.parse(message)
+            record = inject_values_to_record(topic, time, record)
           rescue Exception => e
-            $log.error e
+            log.error e
           end
-          emit topic, parsed_message[0], parsed_message[1]
+          emit topic, record, time
         end
       end
     end
 
-    
+
     def emit topic, message, time = Fluent::Engine.now
       if message.class == Array
         message.each do |data|
-          $log.debug "#{topic}: #{data}"
+          log.debug "#{topic}: #{data}"
           router.emit(topic , time , data)
         end
       else
@@ -90,9 +89,8 @@ module Fluent
     end
 
     def shutdown
-      @thread.kill
       @connect.disconnect
+      super
     end
   end
 end
-
