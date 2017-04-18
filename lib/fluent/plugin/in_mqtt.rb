@@ -6,12 +6,9 @@ module Fluent::Plugin
   class MqttInput < Input
     Fluent::Plugin.register_input('mqtt', self)
 
-    helpers :thread
+    helpers :thread, :inject, :compat_parameters, :parser
 
-    include Fluent::SetTagKeyMixin
     config_set_default :include_tag_key, false
-
-    include Fluent::SetTimeKeyMixin
     config_set_default :include_time_key, true
 
     config_param :port, :integer, :default => 1883
@@ -26,13 +23,13 @@ module Fluent::Plugin
     config_param :cert, :string, :default => nil
 
     def configure(conf)
+      compat_parameters_convert(conf, :inject, :parser)
       super
       configure_parser(conf)
     end
 
     def configure_parser(conf)
-      @parser = Fluent::Plugin.new_parser(@format)
-      @parser.configure(conf)
+      @parser = parser_create(usage: 'in_mqtt_parser', type: @format, conf: conf)
     end
 
     # Return [time (if not available return now), message]
@@ -62,6 +59,7 @@ module Fluent::Plugin
           log.debug "#{topic}: #{message}"
           begin
             time, record = self.parse(message)
+            record = inject_values_to_record(topic, time, record)
           rescue Exception => e
             log.error e
           end

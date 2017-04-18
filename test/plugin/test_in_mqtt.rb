@@ -48,7 +48,7 @@ class MqttInputTest < Test::Unit::TestCase
          time_key time]
     )
     assert_equal 'csv', d2.instance.format
-    assert_equal 'time', d2.instance.time_key
+    assert_equal 'time', d2.instance.inject_config.time_key
   end
 
   def test_configure_2
@@ -123,7 +123,7 @@ class MqttInputTest < Test::Unit::TestCase
     emits = d.events
     assert_equal('tag1', emits[0][0])
     assert_equal(time, emits[0][1])
-    assert_equal({"v" => {"a"=>1}}, emits[0][2])
+    assert_equal({"v" => {"a"=>1}, "t" => time}, emits[0][2])
   end
 
   def test_format_none
@@ -194,10 +194,10 @@ class MqttInputTest < Test::Unit::TestCase
          format csv
          keys time2,message
          time_key time2
-         time_format %S]
+         time_format %s]
     )
 
-    time = event_time("2011-01-02 13:14:15 UTC")
+    time = event_time("2011-01-02 13:14:15 UTC").to_i # to obtain unixtime stamp
     data = [
       {tag: "tag1", message: "#{time},abc" },
       {tag: "tag2", message: "#{time},def" },
@@ -213,16 +213,16 @@ class MqttInputTest < Test::Unit::TestCase
 
     emits = d.events
     assert_equal('tag1', emits[0][0])
-    assert_equal({'message' => 'abc'}, emits[0][2])
+    assert_equal({'message' => 'abc', "time2" => time}, emits[0][2])
 
     assert_equal('tag2', emits[1][0])
-    assert_equal({'message' => 'def'}, emits[1][2])
+    assert_equal({'message' => 'def', "time2" => time}, emits[1][2])
 
     assert_equal('tag3', emits[2][0])
-    assert_equal({'message' => 'ghi'}, emits[2][2])
+    assert_equal({'message' => 'ghi', "time2" => time}, emits[2][2])
 
     assert_equal('tag3', emits[3][0])
-    assert_equal({'message' => nil}, emits[3][2])
+    assert_equal({'message' => nil, "time2"=> time}, emits[3][2])
   end
 
   def send_data tag, record, format
