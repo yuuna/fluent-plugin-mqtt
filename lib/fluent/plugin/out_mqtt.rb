@@ -44,11 +44,13 @@ module Fluent
       @port ||= conf['port']
       @formatter = Plugin.new_formatter(@format)
       @formatter.configure(conf)
+      if conf.has_key?('buffer_chunk_limit')
+        #check buffer_size
+        conf['buffer_chunk_limit'] = available_buffer_chunk_limit(conf)
+      end
     end
 
     def start
-      #check buffer_size
-      @buffer.buffer_chunk_limit = available_buffer_chunk_limit
 
       $log.debug "start mqtt #{@bind}"
       opts = {host: @bind,
@@ -84,12 +86,12 @@ module Fluent
     # Following limits are heuristic. BSON is sometimes bigger than MessagePack and JSON.
     LIMIT_MQTT = 2 * 1024  # 2048kb
 
-    def available_buffer_chunk_limit
-      if @buffer.buffer_chunk_limit > LIMIT_MQTT
-        log.warn ":buffer_chunk_limit(#{@buffer.buffer_chunk_limit}) is large. Reset :buffer_chunk_limit with #{LIMIT_MQTT}"
+    def available_buffer_chunk_limit(conf)
+      if conf['buffer_chunk_limit'] > LIMIT_MQTT
+        log.warn ":buffer_chunk_limit(#{conf['buffer_chunk_limit']}) is large. Reset :buffer_chunk_limit with #{LIMIT_MQTT}"
         LIMIT_MQTT
       else
-        @buffer.buffer_chunk_limit
+        conf['buffer_chunk_limit']
       end
     end
   end
