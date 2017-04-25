@@ -6,7 +6,7 @@ module Fluent::Plugin
   class OutMqtt < Output
     Fluent::Plugin.register_output('mqtt', self)
 
-    helpers :compat_parameters, :inject
+    helpers :compat_parameters, :inject, :formatter
 
     DEFAULT_BUFFER_TYPE = "memory"
 
@@ -37,7 +37,6 @@ module Fluent::Plugin
       config_set_default :time_format, "%Y-%m-%dT%H:%M:%S%z"
     end
 
-
     unless method_defined?(:log)
       define_method(:log) { $log }
     end
@@ -51,13 +50,12 @@ module Fluent::Plugin
     end
 
     def configure(conf)
-      compat_parameters_convert(conf, :buffer, :inject)
+      compat_parameters_convert(conf, :buffer, :inject, :formatter)
       super
       @bind ||= conf['bind']
       @topic ||= conf['topic']
       @port ||= conf['port']
-      @formatter = Fluent::Plugin.new_formatter(@format)
-      @formatter.configure(conf)
+      @formatter = formatter_create
       if conf.has_key?('buffer_chunk_limit')
         #check buffer_size
         conf['buffer_chunk_limit'] = available_buffer_chunk_limit(conf)
