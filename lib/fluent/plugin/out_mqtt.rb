@@ -37,10 +37,6 @@ module Fluent::Plugin
       config_set_default :time_format, "%Y-%m-%dT%H:%M:%S%z"
     end
 
-    unless method_defined?(:log)
-      define_method(:log) { $log }
-    end
-
     def initialize
       super
 
