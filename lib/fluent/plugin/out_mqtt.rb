@@ -64,7 +64,7 @@ module Fluent::Plugin
 
     def start
 
-      $log.debug "start mqtt #{@bind}"
+      log.debug "start mqtt #{@bind}"
       opts = {host: @bind,
               port: @port}
       opts[:client_id] = @client_id if @client_id
