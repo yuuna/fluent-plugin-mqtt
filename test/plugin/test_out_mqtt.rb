@@ -41,34 +41,44 @@ class MqttOutputTest < Test::Unit::TestCase
     assert_equal 'time', d2.instance.inject_config.time_key
   end
 
-  def test_format_csv
-    d = create_driver(
-      %[ bind 127.0.0.1
-         port 1883
-         format csv
-         time_type string
-         time_format %Y-%m-%dT%H:%M:%S%z
-         fields time,message]
-    )
+  class TestWithTimeZone < self
+    def setup
+      @timeZone = ENV['TZ']
+    end
+    def teardown
+      ENV['TZ'] = @timeZone
+    end
 
-    client = sub_client
-    time = event_time("2011-01-02 13:14:15 UTC")
-    data = [
-      {tag: "tag1", message: "#{time},hello world" },
-      {tag: "tag2", message: "#{time},hello to you to" },
-      {tag: "tag3", message: "#{time}," },
-    ]
+    def test_format_csv
+      ENV['TZ'] = 'Asia/Tokyo'
 
-    d.run(default_tag: "test") do
-      data.each do |record|
-        d.feed(time, record)
+      d = create_driver(
+        %[ bind 127.0.0.1
+           port 1883
+           format csv
+           time_type string
+           time_format %Y-%m-%dT%H:%M:%S%z
+           fields time,message]
+      )
+
+      client = sub_client
+      time = event_time("2011-01-02 13:14:15 UTC")
+      data = [
+        {tag: "tag1", message: "#{time},hello world" },
+        {tag: "tag2", message: "#{time},hello to you to" },
+        {tag: "tag3", message: "#{time}," },
+      ]
+
+      d.run(default_tag: "test") do
+        data.each do |record|
+          d.feed(time, record)
+        end
+      end
+      3.times do |i|
+        record = client.get
+        assert_equal "td-agent", record[0]
+        assert_equal "\"2011-01-02T22:14:15+0900\",\"#{data[i][:message]}\"\n", record[1]
       end
     end
-    3.times do |i|
-      record = client.get
-      assert_equal "td-agent", record[0]
-      assert_equal "\"2011-01-02T22:14:15+0900\",\"#{data[i][:message]}\"\n", record[1]
-    end
-
   end
 end
