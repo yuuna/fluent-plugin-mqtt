@@ -28,3 +28,5 @@ require 'fluent/plugin/out_mqtt'
 
 class Test::Unit::TestCase
 end
+
+include Fluent::Test::Helpers

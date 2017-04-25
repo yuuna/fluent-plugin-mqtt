@@ -1,14 +1,18 @@
-module Fluent
-  class OutMqtt < BufferedOutput
-    Plugin.register_output('mqtt', self)
+require 'mqtt'
+require 'msgpack'
+require 'fluent/plugin/output'
 
-    include Fluent::SetTagKeyMixin
+module Fluent::Plugin
+  class OutMqtt < Output
+    Fluent::Plugin.register_output('mqtt', self)
+
+    helpers :compat_parameters, :inject
+
+    DEFAULT_BUFFER_TYPE = "memory"
+
     config_set_default :include_tag_key, false
-    
-    include Fluent::SetTimeKeyMixin
     config_set_default :include_time_key, true
 
-    
     config_param :port, :integer, :default => 1883
     config_param :bind, :string, :default => '127.0.0.1'
     config_param :topic, :string, :default => 'td-agent'
@@ -22,7 +26,17 @@ module Fluent
     config_param :cert, :string, :default => nil
     config_param :retain, :string, :default => true
 
-    require 'mqtt'
+    config_section :buffer do
+      config_set_default :@type, DEFAULT_BUFFER_TYPE
+      config_set_default :chunk_keys, ['tag']
+    end
+
+    config_section :inject do
+      config_set_default :time_key, "time"
+      config_set_default :time_type, "string"
+      config_set_default :time_format, "%Y-%m-%dT%H:%M:%S%z"
+    end
+
 
     unless method_defined?(:log)
       define_method(:log) { $log }
@@ -30,7 +44,6 @@ module Fluent
 
     def initialize
       super
-      require 'msgpack'
 
       @clients = {}
       @connection_options = {}
@@ -38,11 +51,12 @@ module Fluent
     end
 
     def configure(conf)
+      compat_parameters_convert(conf, :buffer, :inject)
       super
       @bind ||= conf['bind']
       @topic ||= conf['topic']
       @port ||= conf['port']
-      @formatter = Plugin.new_formatter(@format)
+      @formatter = Fluent::Plugin.new_formatter(@format)
       @formatter.configure(conf)
       if conf.has_key?('buffer_chunk_limit')
         #check buffer_size
@@ -72,11 +86,21 @@ module Fluent
     end
 
     def format(tag, time, record)
-      [tag, time, record].to_msgpack
+      [time, record].to_msgpack
+    end
+
+    def formatted_to_msgpack_binary
+      true
+    end
+
+    def multi_workers_ready?
+      true
     end
 
     def write(chunk)
-      chunk.msgpack_each { |tag, time, record|
+      tag = chunk.metadata.tag
+      chunk.msgpack_each { |time, record|
+        record = inject_values_to_record(tag, time, record)
         log.debug "write #{@topic} #{@formatter.format(tag,time,record)}"
         @connect.publish(@topic, @formatter.format(tag,time,record), retain=@retain)
       }

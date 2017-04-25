@@ -1,4 +1,5 @@
 require_relative '../helper'
+require 'fluent/test/driver/output'
 
 class MqttOutputTest < Test::Unit::TestCase
   def setup
@@ -10,7 +11,7 @@ class MqttOutputTest < Test::Unit::TestCase
               format json ]
 
   def create_driver(conf = CONFIG)
-    Fluent::Test::BufferedOutputTestDriver.new(Fluent::OutMqtt).configure(conf)
+    Fluent::Test::Driver::Output.new(Fluent::Plugin::OutMqtt).configure(conf)
   end
 
   def sub_client(topic = "td-agent/#")
@@ -45,26 +46,28 @@ class MqttOutputTest < Test::Unit::TestCase
       %[ bind 127.0.0.1
          port 1883
          format csv
+         time_type string
+         time_format %Y-%m-%dT%H:%M:%S%z
          fields time,message]
     )
 
     client = sub_client
-    time = Time.parse("2011-01-02 13:14:15 UTC").to_i
+    time = event_time("2011-01-02 13:14:15 UTC")
     data = [
       {tag: "tag1", message: "#{time},hello world" },
       {tag: "tag2", message: "#{time},hello to you to" },
       {tag: "tag3", message: "#{time}," },
     ]
 
-    d.run do
+    d.run(default_tag: "test") do
       data.each do |record|
-        d.emit(record, time)
+        d.feed(time, record)
       end
     end
     3.times do |i|
       record = client.get
       assert_equal "td-agent", record[0]
-      assert_equal "\"2011-01-02T13:14:15Z\",\"#{data[i][:message]}\"\n", record[1]
+      assert_equal "\"2011-01-02T22:14:15+0900\",\"#{data[i][:message]}\"\n", record[1]
     end
 
   end
