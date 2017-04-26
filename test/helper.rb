@@ -24,6 +24,7 @@ unless ENV.has_key?('VERBOSE')
 end
 
 require 'fluent/plugin/in_mqtt'
+require 'fluent/plugin/out_mqtt'
 
 class Test::Unit::TestCase
 end
