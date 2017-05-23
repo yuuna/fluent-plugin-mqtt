@@ -2,6 +2,13 @@
 
 Fluent plugin for MQTT protocol
 
+## Requirements
+
+| fluent-plugin-s3  | fluentd | ruby |
+|-------------------|---------|------|
+| >= 0.0.8 | >= v0.14.0 | >= 2.1 |
+|  < 0.0.8 | >= v0.12.0 | >= 1.9 |
+
 ## Installation
 
 Add this line to your application's Gemfile:
