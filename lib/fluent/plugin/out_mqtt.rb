@@ -24,7 +24,7 @@ module Fluent::Plugin
     config_param :ca, :string, :default => nil
     config_param :key, :string, :default => nil
     config_param :cert, :string, :default => nil
-    config_param :retain, :string, :default => true
+    config_param :retain, :bool, :default => true
 
     config_section :buffer do
       config_set_default :@type, DEFAULT_BUFFER_TYPE
