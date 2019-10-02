@@ -39,6 +39,14 @@ class MqttOutputTest < Test::Unit::TestCase
     )
     assert_equal 'csv', d2.instance.instance_variable_get(:@format)
     assert_equal 'time', d2.instance.inject_config.time_key
+
+    d3 = create_driver(
+      %[ bind 127.0.0.1
+         port 1883
+         format json
+         retain false]
+    )
+    assert_equal false, d3.instance.instance_variable_get(:@retain)
   end
 
   class TestWithTimeZone < self
