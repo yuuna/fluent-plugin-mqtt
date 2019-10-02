@@ -15,7 +15,7 @@ module Fluent::Plugin
 
     config_param :port, :integer, :default => 1883
     config_param :bind, :string, :default => '127.0.0.1'
-    config_param :topic, :string, :default => '#'
+    config_param :topics, :array, :default => ['#'], value_type: :string
     config_param :format, :string, :default => DEFAULT_PARSER_TYPE
     config_param :client_id, :string, :default => nil
     config_param :username, :string, :default => nil
@@ -59,7 +59,10 @@ module Fluent::Plugin
       opts[:cert_file] = @cert if @cert
       opts[:key_file] = @key if @key
       @connect = MQTT::Client.connect(opts)
-      @connect.subscribe(@topic)
+      log.debug "subscribing on topics #{@topics}"
+      @topics.each do |topic|
+        @connect.subscribe(topic)
+      end
 
       thread_create(:in_mqtt_worker) do
         @connect.get do |topic,message|
