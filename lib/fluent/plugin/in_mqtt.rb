@@ -15,7 +15,7 @@ module Fluent::Plugin
 
     config_param :port, :integer, :default => 1883
     config_param :bind, :string, :default => '127.0.0.1'
-    config_param :topics, :array, :default => [], value_type: :string
+    config_param :topics, :array, :default => ['#'], value_type: :string
     config_param :format, :string, :default => DEFAULT_PARSER_TYPE
     config_param :client_id, :string, :default => nil
     config_param :username, :string, :default => nil
