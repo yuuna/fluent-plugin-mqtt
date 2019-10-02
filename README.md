@@ -19,7 +19,7 @@ Or install it yourself as:
 ## Usage
 
 This client works as ONLY MQTT client.
-MQTT topic is set "#".
+MQTT topics array is set as "#".
 
 ```
 
@@ -35,7 +35,7 @@ MQTT topic is set "#".
 
 ### Changelog version 0.0.10
 
- - Support multiple subscriptions (put more coma separated topic in topic parameter)
+ - Support multiple subscriptions (put more coma separated topic in topics parameter)
 
 ## Contributing
 
