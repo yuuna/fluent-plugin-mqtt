@@ -33,6 +33,10 @@ MQTT topic is set "#".
 
 ```
 
+### Changelog version 0.0.10
+
+ - Support multiple subscriptions (put more coma separated topic in topic parameter)
+
 ## Contributing
 
 1. Fork it ( http://github.com/yuuna/fluent-plugin-mqtt/fork )

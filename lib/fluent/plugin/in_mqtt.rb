@@ -59,9 +59,7 @@ module Fluent::Plugin
       opts[:cert_file] = @cert if @cert
       opts[:key_file] = @key if @key
       @connect = MQTT::Client.connect(opts)
-
       log.debug "subscribing on topics #{@topics}"
-
       @topics.each do |topic|
         @connect.subscribe(topic)
       end
